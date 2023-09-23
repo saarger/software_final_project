@@ -153,6 +153,8 @@ static PyObject* fit(PyObject *self, PyObject *args)
 
 static PyObject* symnmf(PyObject *self, PyObject *args)
 {
+    printf("symnmf\n");
+    printf("symnmf\n");
     double** result_c;
     int k, goal, total_vec_number, vec_size,i;
     //double **data_points_c,**A_mat_c;
