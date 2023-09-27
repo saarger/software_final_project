@@ -7,12 +7,12 @@
 #define int_max 2147483647
 
 double global_delta_uk = 1000000;
-int num_vectors,size_vec;
+
 double epsilon;
 double **data_points_c,**mat_c;
 
 
-double** create_mat(int vec_num, int vec_size);
+double** create_matrix(int vec_num, int vec_size);
 static PyObject* fit(PyObject *self, PyObject *args);
 double** parse_py_table_to_C(PyObject *lst, int vec_num, int vec_size);
 
@@ -21,7 +21,7 @@ double** parse_py_table_to_C(PyObject *lst, int vec_num, int vec_size)
 {
     
     int row, col;
-    double **data_points_c = create_mat(vec_num, vec_size);
+    double **data_points_c = create_matrix(vec_num, vec_size);
     if (!data_points_c)
     {
         return NULL;
@@ -38,47 +38,12 @@ double** parse_py_table_to_C(PyObject *lst, int vec_num, int vec_size)
 
 }
 
-double vector_distance(double* p, double* q){
-    double sum=0;
-    int i;
-    for(i=0;i<size_vec;i++){
-        sum = sum + pow(p[i] - q[i],2);
-    }
-    return sum;
-}
 
-double** similarity_matrix(double** vectors){
-    double** A_matrix;
-    A_matrix = (double**)calloc(num_vectors,num_vectors*sizeof(double));
-    if(!A_matrix){
-        return NULL;
-    }
-    int i,j;
-    for(i=0;i<num_vectors;i++){
-        A_matrix[i] = (double*)calloc(num_vectors,sizeof(double));
-        if(!A_matrix[i]){
-            return NULL;
-        }
-    }
-    for(i=0;i<num_vectors;i++){
-        for(j=0;j<num_vectors;j++){
-            if(i!=j){
-                A_matrix[i][j] = exp(-vector_distance(vectors[i],vectors[j])/2);
-            }
-            else{
-                A_matrix[i][j] = 0;
-            }
-        }
-    }
-    return A_matrix;
-
-}
-
-double** create_mat(int vec_num, int vec_size){
+double** create_matrix(int vec_num, int vec_size){
     int i;
     double **mat;
     //mat = calloc(vec_num, sizeof(double*));
-    mat = calloc(vec_num, vec_num*sizeof(double));
+    mat = calloc(vec_num, vec_size*sizeof(double));
     if (!mat)
     {
         return NULL;
@@ -123,24 +88,19 @@ PyObject* parse_list_to_py(double** centroids_c,int row,int col)
 static PyObject* fit(PyObject *self, PyObject *args)
 {
     double** result_c;
-    int k, goal, total_vec_number, vec_size,i;
-    //double **data_points_c,**A_mat_c;
+    int  goal, total_vec_number, vec_size,i;
     PyObject *data_points_py, *result_py;
     if (!PyArg_ParseTuple(args, "iOii", &goal, &data_points_py, &total_vec_number, &vec_size))
     {
         return NULL;
     }
-
-    size_vec = vec_size;
-    data_points_c = parse_py_table_to_C(data_points_py, total_vec_number, size_vec);
-    num_vectors = total_vec_number;
     
-    result_c = goal_manager(goal, data_points_c, size_vec, num_vectors);
-    
-    result_py = parse_list_to_py(result_c, num_vectors, num_vectors);
+    data_points_c = parse_py_table_to_C(data_points_py, total_vec_number, vec_size);
+    result_c = goal_manager(goal, data_points_c, vec_size, total_vec_number);
+    result_py = parse_list_to_py(result_c, total_vec_number, total_vec_number);
     
    
-    for (i = 0; i < num_vectors ; i++)
+    for (i = 0; i < total_vec_number ; i++)
     {
         free(data_points_c[i]);
         free(result_c[i]);
@@ -153,31 +113,36 @@ static PyObject* fit(PyObject *self, PyObject *args)
 
 static PyObject* symnmf(PyObject *self, PyObject *args)
 {
-    double** result_c;
-    int k, goal, total_vec_number, vec_size,i;
-    //double **data_points_c,**A_mat_c;
-    PyObject *data_points_py, *result_py;
-    if (!PyArg_ParseTuple(args, "iOii", &goal, &data_points_py, &total_vec_number, &vec_size))
+    
+    // double **result_c;
+    double **H_c;
+    double **W_c;
+    int  total_vec_number, vec_size,i;
+    PyObject *H_py, *W_py,*result_py;
+    if (!PyArg_ParseTuple(args, "OOii", &H_py, &W_py, &total_vec_number, &vec_size))
     {
+        ;
         return NULL;
     }
-
-    size_vec = vec_size;
-    data_points_c = parse_py_table_to_C(data_points_py, total_vec_number, size_vec);
-    num_vectors = total_vec_number;
     
-    result_c = goal_manager(goal, data_points_c, size_vec, num_vectors);
+    H_c = parse_py_table_to_C(H_py, total_vec_number, vec_size);
+    W_c = parse_py_table_to_C(W_py, total_vec_number, total_vec_number);
     
-    result_py = parse_list_to_py(result_c, num_vectors, num_vectors);
+    H_c = calc_H(H_c,W_c, vec_size, total_vec_number);
+    
+    // what is the returned matrix size? 
+    result_py = parse_list_to_py(H_c, total_vec_number, vec_size);
     
    
-    for (i = 0; i < num_vectors ; i++)
+    for (i = 0; i < total_vec_number ; i++)
     {
-        free(data_points_c[i]);
-        free(result_c[i]);
+        free(H_c[i]);
+        free(W_c[i]);
+        // free(result_c[i]);
     }
-    free(data_points_c);
-    free(result_c);
+    free(W_c);
+    // free(result_c);
+    free(H_c);
     
     return result_py;
 }

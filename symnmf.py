@@ -1,4 +1,5 @@
 import random
+import math
 import numpy as np
 import pandas as pd
 import symnmfmodule
@@ -23,8 +24,7 @@ def arg_parsing():
             raise Exception
         file_name = args[3]
 
-        
-        run_kmeans_pp(3, 100,file_name)
+        run_kmeans_pp(k, goal,file_name)
     except Exception:
         print("An Error Has Occurred")
         sys.exit(1)
@@ -32,14 +32,35 @@ def arg_parsing():
 
 
 
+def calc_mat_avg(mat):
+    avg = 0
+    for i in range(len(mat)):
+        for j in range(len(mat[0])):
+            avg += mat[i][j]
+    avg = avg / (len(mat) * len(mat[0]))
+    return avg
 
+def init_H(k, n, m,vex_size):
+    H = []
+    for i in range(n):
+        H.append( [random.uniform(0, 2*math.sqrt(m / k)) for i in range(vex_size)])
+    return H
 
 def run_kmeans_pp(k,goal, input_filename):
+    goal_to_num = {"sym":1,"norm":2,"ddg":3,"symnmf":4}
     vectors = pd.read_csv(input_filename,header=None)
     vectors = vectors.values.tolist()
-    centroids = symnmfmodule.fit(1, vectors, len(vectors), len(vectors[0]))
-    print(len(centroids),len(centroids[0]))
-    print(centroids[0][0],centroids[0][1] )
+    if goal_to_num.get(goal) == 4:
+        W = symnmfmodule.fit(3, vectors, len(vectors), len(vectors[0]))
+        print(W[0][1],calc_mat_avg(W))
+        H = init_H(k,len(W),calc_mat_avg(W),len(vectors[0]))
+        print(len(H),len(H[0]))
+        H = symnmfmodule.symnmf(H,W,len(vectors), len(vectors[0]))
+        print(H[0][1])
+    else:
+        mat = symnmfmodule.fit(goal_to_num.get(goal), vectors, len(vectors), len(vectors[0]))
+    # print(len(mat),len(mat[0]))
+    # print(mat[0][0],mat[0][1])
     # for centroid in centroids:
     #     for i, element in enumerate(centroid):
     #         if i != 0:
@@ -48,8 +69,6 @@ def run_kmeans_pp(k,goal, input_filename):
     #     print()
 
 if __name__ == '__main__':
-
-    
     arg_parsing()
     
 
