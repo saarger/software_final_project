@@ -43,20 +43,20 @@ double** goal_manager(int goal, double** vectors, int vec_size, int vectors_num)
 }
 
 //1.4
-double** calc_H(double** init_H,double** W, int vec_size, int vectors_num){
-    size_vec = vec_size;
+double** calc_H(double** init_H,double** W, int vectors_num, int k){
+
     num_vectors = vectors_num;
 
     int max_iter = 1000; 
-    double epsilon = 1e-6; 
+    double epsilon = 1e-6;
     double beta = 0.5;
     int i, j, l;
 
     for(int iter = 0; iter < max_iter; iter++) {
-        double** H_old = copy_matrix(init_H, num_vectors, size_vec);
+        double** H_old = copy_matrix(init_H, num_vectors, k);
         
         for(i = 0; i < num_vectors; i++) {
-            for(j = 0; j < size_vec; j++) {
+            for(j = 0; j < k; j++) {
                 double numerator = 0.0, denominator = 0.0;
                 for(l = 0; l < num_vectors; l++) {
                     numerator += W[i][l] * init_H[l][j];
@@ -70,7 +70,7 @@ double** calc_H(double** init_H,double** W, int vec_size, int vectors_num){
             }
         }
         
-        if(frobenius_norm_difference(init_H, H_old, num_vectors, size_vec) < epsilon) {
+        if(frobenius_norm_difference(init_H, H_old, num_vectors, k) < epsilon) {
             free_matrix(H_old, num_vectors);
             break;
         }
