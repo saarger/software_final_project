@@ -2,4 +2,4 @@
 #include <stdlib.h>
 
 double** goal_manager(int goal, double** vectors, int size_vec, int num_vectors);
-double** calc_H(double** init_H,double** W, int vec_size, int vectors_num);
+double** calc_H(double** init_H,double** W,  int vectors_num, int k);
