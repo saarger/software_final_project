@@ -1,5 +1,8 @@
 #include "symnmf.h"
 #include <math.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 
 int size_vec,num_vectors;
@@ -14,14 +17,16 @@ double** similarity_matrix(double** vectors);
 double** diagonal_degree_matrix(double** A_matrix);
 double** normalized_similarity_matrix(double** A_matrix, double** D_matrix);
 double vector_distance(double* p, double* q);
+void print_matrix(double** matrix, int rows, int cols);
 
 
 double** goal_manager(int goal, double** vectors, int vec_size, int vectors_num){
     size_vec = vec_size;
     num_vectors = vectors_num;
     double** res_matrix;
+    printf("goal is %d\n",goal);
     switch(goal){
-        case 1: // Similarity Matrix
+        case 1: //Similarity Matrix
             res_matrix = similarity_matrix(vectors);
             break;
         case 2: // Diagonal Degree Matrix
@@ -157,6 +162,7 @@ double** similarity_matrix(double** vectors){
 
 //1.2
 double** diagonal_degree_matrix(double** A_matrix) {
+    printf("num_vectors is %d\n",num_vectors);
     double** D_matrix = create_mat(num_vectors, num_vectors);
     for(int i = 0; i < num_vectors; i++) {
         double sum = 0;
@@ -183,3 +189,100 @@ double** normalized_similarity_matrix(double** A_matrix, double** D_matrix) {
     return W_matrix;
 }
 
+double** read_input_file(const char* file_name, int* vec_size, int* vectors_num) {
+    FILE *file = fopen(file_name, "r");
+    if(!file) {
+        perror("Error opening file");
+        return NULL;
+    }
+    
+    char line[1024]; // Adjust the size as needed
+    *vectors_num = 0;
+    *vec_size = 0;
+
+    // Count the number of lines (vectors) and the size of vectors in the file
+    while(fgets(line, sizeof(line), file)) {
+        if(strcmp(line, "\n") == 0) break; // Stop at an empty line
+
+        char *token = strtok(line, ",");
+        while(token) {
+            if(*vectors_num == 0) (*vec_size)++;
+            token = strtok(NULL, ",");
+        }
+        (*vectors_num)++;
+    }
+    
+    // Allocate memory for vectors
+    double **vectors = create_mat(*vectors_num, *vec_size);
+    if(!vectors) {
+        fclose(file);
+        return NULL;
+    }
+
+    // Reset the file pointer to the beginning of the file
+    rewind(file);
+    
+    // Read the vectors from the file
+    for(int i = 0; i < *vectors_num; i++) {
+        if(!fgets(line, sizeof(line), file) || strcmp(line, "\n") == 0) break;
+
+        char *token = strtok(line, ",");
+        for(int j = 0; token && j < *vec_size; j++) {
+            vectors[i][j] = atof(token);
+            token = strtok(NULL, ",");
+        }
+    }
+    
+    fclose(file);
+    return vectors;
+}
+
+void print_matrix(double** matrix, int rows, int cols) {
+    for(int i = 0; i < rows; i++) {
+        for(int j = 0; j < cols; j++) {
+            printf("%lf", matrix[i][j]);
+            if(j < cols - 1) printf(",");
+        }
+        printf("\n");
+    }
+}
+
+int main(int argc, char* argv[]) {
+    if(argc != 3) {
+        fprintf(stderr, "Usage: %s <goal> <file_name>\n", argv[0]);
+        return 1;
+    }
+    
+    const char* goal = argv[1];
+    const char* file_name = argv[2];
+    
+    int goal_code;
+    if(strcmp(goal, "sym") == 0) goal_code = 1;
+    else if(strcmp(goal, "ddg") == 0) goal_code = 2;
+    else if(strcmp(goal, "norm") == 0) goal_code = 3;
+    else {
+        fprintf(stderr, "Invalid goal: %s. Valid goals are 'sym', 'ddg', and 'norm'.\n", goal);
+        return 1;
+    }
+
+    int vec_size, vectors_num;
+    double** vectors = read_input_file(file_name, &vec_size, &vectors_num);
+    if(!vectors) {
+        fprintf(stderr, "Failed to read input file: %s\n", file_name);
+        return 1;
+    }
+
+    double** result_matrix = goal_manager(goal_code, vectors, vec_size, vectors_num);
+    if(!result_matrix) {
+        fprintf(stderr, "Failed to calculate the result matrix for goal: %s\n", goal);
+        return 1;
+    }
+    
+    print_matrix(result_matrix, vectors_num, vectors_num);
+    
+    // Clean up allocated memory.
+    free_matrix(result_matrix, vectors_num);
+    free_matrix(vectors, vectors_num);
+    
+    return 0;
+}
