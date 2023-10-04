@@ -24,7 +24,6 @@ double** goal_manager(int goal, double** vectors, int vec_size, int vectors_num)
     size_vec = vec_size;
     num_vectors = vectors_num;
     double** res_matrix;
-    printf("goal is %d\n",goal);
     switch(goal){
         case 1: //Similarity Matrix
             res_matrix = similarity_matrix(vectors);
@@ -52,12 +51,13 @@ double** calc_H(double** init_H,double** W, int vectors_num, int k){
 
     num_vectors = vectors_num;
 
-    int max_iter = 1000; 
-    double epsilon = 1e-6;
+    int max_iter = 300; 
+    double epsilon = 1e-4;
     double beta = 0.5;
     int i, j, l;
 
     for(int iter = 0; iter < max_iter; iter++) {
+        printf("Iteration %d\n", iter);
         double** H_old = copy_matrix(init_H, num_vectors, k);
         
         for(i = 0; i < num_vectors; i++) {
@@ -73,12 +73,12 @@ double** calc_H(double** init_H,double** W, int vectors_num, int k){
                 
                 init_H[i][j] *= (1 - beta + beta * numerator / denominator);
             }
-        }
-        
+        }        
         if(frobenius_norm_difference(init_H, H_old, num_vectors, k) < epsilon) {
             free_matrix(H_old, num_vectors);
             break;
         }
+        printf("Frobenius norm difference: %lf\n", frobenius_norm_difference(init_H, H_old, num_vectors, k));
         
         free_matrix(H_old, num_vectors);
     }
@@ -162,7 +162,6 @@ double** similarity_matrix(double** vectors){
 
 //1.2
 double** diagonal_degree_matrix(double** A_matrix) {
-    printf("num_vectors is %d\n",num_vectors);
     double** D_matrix = create_mat(num_vectors, num_vectors);
     for(int i = 0; i < num_vectors; i++) {
         double sum = 0;
