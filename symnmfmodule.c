@@ -117,21 +117,21 @@ static PyObject* symnmf(PyObject *self, PyObject *args)
     // double **result_c;
     double **H_c;
     double **W_c;
-    int  total_vec_number, vec_size,i;
+    int  total_vec_number,k,i;
     PyObject *H_py, *W_py,*result_py;
-    if (!PyArg_ParseTuple(args, "OOii", &H_py, &W_py, &total_vec_number, &vec_size))
+    if (!PyArg_ParseTuple(args, "OOii", &H_py, &W_py, &total_vec_number, &k))
     {
         ;
         return NULL;
     }
     
-    H_c = parse_py_table_to_C(H_py, total_vec_number, vec_size);
+    H_c = parse_py_table_to_C(H_py, total_vec_number, k);
     W_c = parse_py_table_to_C(W_py, total_vec_number, total_vec_number);
     
-    H_c = calc_H(H_c,W_c, vec_size, total_vec_number);
+    H_c = calc_H(H_c,W_c, total_vec_number, k);
     
     // what is the returned matrix size? 
-    result_py = parse_list_to_py(H_c, total_vec_number, vec_size);
+    result_py = parse_list_to_py(H_c, total_vec_number, k);
     
    
     for (i = 0; i < total_vec_number ; i++)

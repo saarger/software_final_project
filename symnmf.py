@@ -40,22 +40,23 @@ def calc_mat_avg(mat):
     avg = avg / (len(mat) * len(mat[0]))
     return avg
 
-def init_H(k, n, m,vex_size):
+def init_H(k, n, m):
+    np.random.seed(0)
     H = []
     for i in range(n):
-        H.append( [random.uniform(0, 2*math.sqrt(m / k)) for i in range(vex_size)])
+        H.append( [random.uniform(0, 2*math.sqrt(m / k)) for i in range(k)])
     return H
 
 def run_kmeans_pp(k,goal, input_filename):
-    goal_to_num = {"sym":1,"norm":2,"ddg":3,"symnmf":4}
+    goal_to_num = {"sym":1,"ddg":2,"norm":3,"symnmf":4}
     vectors = pd.read_csv(input_filename,header=None)
     vectors = vectors.values.tolist()
     if goal_to_num.get(goal) == 4:
         W = symnmfmodule.fit(3, vectors, len(vectors), len(vectors[0]))
         print(W[0][1],calc_mat_avg(W))
-        H = init_H(k,len(W),calc_mat_avg(W),len(vectors[0]))
+        H = init_H(k,len(W),calc_mat_avg(W))
         print(len(H),len(H[0]))
-        H = symnmfmodule.symnmf(H,W,len(vectors), len(vectors[0]))
+        H = symnmfmodule.symnmf(H,W,len(vectors), k)
         print(H[0][1])
     else:
         mat = symnmfmodule.fit(goal_to_num.get(goal), vectors, len(vectors), len(vectors[0]))
