@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 import symnmfmodule
 import sys
+
+random.seed(0)
+
 def d(p,q):
     sum = 0
     for i in range(len(p)):
@@ -41,7 +44,6 @@ def calc_mat_avg(mat):
     return avg
 
 def init_H(k, n, m):
-    np.random.seed(0)
     H = []
     for i in range(n):
         H.append( [random.uniform(0, 2*math.sqrt(m / k)) for i in range(k)])
@@ -55,9 +57,8 @@ def run_kmeans_pp(k,goal, input_filename):
         W = symnmfmodule.fit(3, vectors, len(vectors), len(vectors[0]))
         print(W[0][1],calc_mat_avg(W))
         H = init_H(k,len(W),calc_mat_avg(W))
-        print(len(H),len(H[0]))
         H = symnmfmodule.symnmf(H,W,len(vectors), k)
-        print(H[0][1])
+        print(H)
     else:
         mat = symnmfmodule.fit(goal_to_num.get(goal), vectors, len(vectors), len(vectors[0]))
     # print(len(mat),len(mat[0]))

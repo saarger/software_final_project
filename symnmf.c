@@ -64,8 +64,8 @@ double** calc_H(double** init_H,double** W, int vectors_num, int k){
             for(j = 0; j < k; j++) {
                 double numerator = 0.0, denominator = 0.0;
                 for(l = 0; l < num_vectors; l++) {
-                    numerator += W[i][l] * init_H[l][j];
-                    denominator += init_H[i][l] * init_H[l][j] * init_H[l][j];
+                    numerator += W[i][l] * H_old[l][j];
+                    denominator += H_old[i][l] * H_old[l][j] * H_old[l][j];
                 }
                 
                 if(denominator == 0)
@@ -79,7 +79,6 @@ double** calc_H(double** init_H,double** W, int vectors_num, int k){
             break;
         }
         printf("Frobenius norm difference: %lf\n", frobenius_norm_difference(init_H, H_old, num_vectors, k));
-        
         free_matrix(H_old, num_vectors);
     }
     return init_H;

@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import symnmf
 from sklearn.cluster import KMeans
 from sklearn.decomposition import NMF
 from sklearn.metrics import silhouette_score
@@ -13,7 +14,7 @@ def read_data(file_name):
     return np.array(data)
 
 def perform_symnmf(data, k):
-    # call to 1.4
+    symnmf.run_kmeans_pp(k, "symnmf", "data.txt")
     pass
 
 def perform_kmeans(data, k):
