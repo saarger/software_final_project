@@ -46,43 +46,123 @@ double** goal_manager(int goal, double** vectors, int vec_size, int vectors_num)
     return res_matrix;
 }
 
-//1.4
-double** calc_H(double** init_H,double** W, int vectors_num, int k){
+// Helper function: Calculate Frobenius norm of the difference between two matrices
+double frobenius_norm_diff(double** A, double** B, int rows, int cols) {
+    double sum = 0.0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            double diff = A[i][j] - B[i][j];
+            sum += diff * diff;
+        }
+    }
+    return sum;
+}
 
-    num_vectors = vectors_num;
+// Helper function: Matrix multiplication
+double** matrix_multiply(double** A, double** B, int rowsA, int colsA, int rowsB, int colsB) {
+    if (colsA != rowsB) {
+        // Handle error: matrices cannot be multiplied
+        return NULL;
+    }
+    
+    double** C = malloc(rowsA * sizeof(double*));
+    for (int i = 0; i < rowsA; i++) {
+        C[i] = malloc(colsB * sizeof(double));
+        for (int j = 0; j < colsB; j++) {
+            C[i][j] = 0.0;
+            for (int k = 0; k < colsA; k++) {
+                C[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+    return C;
+}
 
-    int max_iter = 300; 
+// Helper function: Matrix transpose
+double** matrix_transpose(double** A, int rows, int cols) {
+    double** AT = malloc(cols * sizeof(double*));
+    for (int i = 0; i < cols; i++) {
+        AT[i] = malloc(rows * sizeof(double));
+        for (int j = 0; j < rows; j++) {
+            AT[i][j] = A[j][i];
+        }
+    }
+    return AT;
+}
+
+// Main function: Calculate H
+double** calc_H(double** H_init, double** W, int vectors_num, int k) {
+
+    int max_iter = 1;
     double epsilon = 1e-4;
     double beta = 0.5;
-    int i, j, l;
 
-    for(int iter = 0; iter < max_iter; iter++) {
+    // Allocate memory and initialize H
+    double** H = malloc(vectors_num * sizeof(double*));
+    for (int i = 0; i < vectors_num; i++) {
+        H[i] = malloc(k * sizeof(double));
+        for (int j = 0; j < k; j++) {
+            H[i][j] = H_init[i][j];
+        }
+    }
+
+    for (int iter = 0; iter < max_iter; iter++) {
         printf("Iteration %d\n", iter);
-        double** H_old = copy_matrix(init_H, num_vectors, k);
+        // Update H according to the provided rule
         
-        for(i = 0; i < num_vectors; i++) {
-            for(j = 0; j < k; j++) {
-                double numerator = 0.0, denominator = 0.0;
-                for(l = 0; l < num_vectors; l++) {
-                    numerator += W[i][l] * H_old[l][j];
-                    denominator += H_old[i][l] * H_old[l][j] * H_old[l][j];
-                }
-                
-                if(denominator == 0)
-                    continue;
-                
-                init_H[i][j] *= (1 - beta + beta * numerator / denominator);
+        double** HT = matrix_transpose(H, vectors_num, k);  // Transpose of H at iteration i
+        double** HHT = matrix_multiply(H, HT, vectors_num, k, k, vectors_num);  // H*(H^T)
+        double** HHTH = matrix_multiply(HHT, H, vectors_num, vectors_num, vectors_num, k);  // H*(H^T)*H
+        double** WH = matrix_multiply(W, H, vectors_num, vectors_num, vectors_num, k);  // W*H
+        
+        for (int i = 0; i < vectors_num; i++) {
+            for (int j = 0; j < k; j++) {
+                H[i][j] = H_init[i][j] * (1 - beta + beta * (WH[i][j] / HHTH[i][j]));
             }
-        }        
-        if(frobenius_norm_difference(init_H, H_old, num_vectors, k) < epsilon) {
-            free_matrix(H_old, num_vectors);
+        }
+        
+        // Free memory
+        free(HT);
+        free(HHT);
+        free(HHTH);
+        free(WH);
+        
+        // Check stopping criteria
+        if (frobenius_norm_diff(H, H_init, vectors_num, k) < epsilon) {
             break;
         }
-        printf("Frobenius norm difference: %lf\n", frobenius_norm_difference(init_H, H_old, num_vectors, k));
-        free_matrix(H_old, num_vectors);
+
+        printf("Frobenius norm: %f\n", frobenius_norm_diff(H, H_init, vectors_num, k));
+
+        for (int i = 0; i < vectors_num; i++) {
+            for (int j = 0; j < k; j++) {
+                H_init[i][j] = H[i][j];
+            }
+        }
     }
-    return init_H;
+
+    for (int i = 0; i < vectors_num; i++) {
+        free(H_init[i]);
+    }
+    free(H_init);
+
+    return H;
 }
+
+void deriveClusters(double** H, int* clusters, int n, int k) {
+    for(int i = 0; i < n; i++) {
+        int max_idx = 0;
+        float max_val = H[i][0];
+        for(int j = 1; j < k; j++) {
+            if(H[i][j] > max_val) {
+                max_val = H[i][j];
+                max_idx = j;
+            }
+        }
+        clusters[i] = max_idx;
+    }
+}
+
 
 double** copy_matrix(double** source, int rows, int cols) {
     double** dest = create_mat(rows, cols);
@@ -94,16 +174,6 @@ double** copy_matrix(double** source, int rows, int cols) {
     return dest;
 }
 
-double frobenius_norm_difference(double** A, double** B, int rows, int cols) {
-    double sum = 0;
-    for(int i = 0; i < rows; i++) {
-        for(int j = 0; j < cols; j++) {
-            double diff = A[i][j] - B[i][j];
-            sum += diff * diff;
-        }
-    }
-    return sqrt(sum);
-}
 
 void free_matrix(double** matrix, int rows) {
     for(int i = 0; i < rows; i++)
@@ -238,7 +308,7 @@ double** read_input_file(const char* file_name, int* vec_size, int* vectors_num)
 void print_matrix(double** matrix, int rows, int cols) {
     for(int i = 0; i < rows; i++) {
         for(int j = 0; j < cols; j++) {
-            printf("%lf", matrix[i][j]);
+            printf("%.4f ", matrix[i][j]);
             if(j < cols - 1) printf(",");
         }
         printf("\n");
