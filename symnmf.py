@@ -33,7 +33,11 @@ def arg_parsing():
         sys.exit(1)
 
 
-
+def print_mat(mat):
+    for row in mat:
+        for elem in row:
+            print(f"{elem:.4f} ", end="")
+        print("")
 
 def calc_mat_avg(mat):
     avg = 0
@@ -55,10 +59,11 @@ def run_kmeans_pp(k,goal, input_filename):
     vectors = vectors.values.tolist()
     if goal_to_num.get(goal) == 4:
         W = symnmfmodule.fit(3, vectors, len(vectors), len(vectors[0]))
-        print(W[0][1],calc_mat_avg(W))
+        print_mat(W)
         H = init_H(k,len(W),calc_mat_avg(W))
+        print_mat(H)
         H = symnmfmodule.symnmf(H,W,len(vectors), k)
-        print(H)
+        print_mat(H)
     else:
         mat = symnmfmodule.fit(goal_to_num.get(goal), vectors, len(vectors), len(vectors[0]))
     # print(len(mat),len(mat[0]))
