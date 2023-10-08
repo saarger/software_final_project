@@ -5,7 +5,7 @@ import pandas as pd
 import symnmfmodule
 import sys
 
-random.seed(0)
+np.random.seed(0)
 
 def d(p,q):
     sum = 0
@@ -35,8 +35,11 @@ def arg_parsing():
 
 def print_mat(mat):
     for row in mat:
-        for elem in row:
-            print(f"{elem:.4f} ", end="")
+        for i in range(len(row)):
+            elem = row[i]
+            if i != 0 and i != len(row):
+                print(",", end="")
+            print(f"{elem:.4f}", end="")
         print("")
 
 def calc_mat_avg(mat):
@@ -48,10 +51,9 @@ def calc_mat_avg(mat):
     return avg
 
 def init_H(k, n, m):
-    H = []
-    for i in range(n):
-        H.append( [random.uniform(0, 2*math.sqrt(m / k)) for i in range(k)])
-    return H
+    high = 2 * (m / k) ** 0.5
+    return np.random.uniform(high=high, size=(n, k)).tolist()
+
 
 def run_kmeans_pp(k,goal, input_filename):
     goal_to_num = {"sym":1,"ddg":2,"norm":3,"symnmf":4}

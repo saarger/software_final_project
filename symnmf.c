@@ -93,7 +93,7 @@ double** matrix_transpose(double** A, int rows, int cols) {
 // Main function: Calculate H
 double** calc_H(double** H_init, double** W, int vectors_num, int k) {
 
-    int max_iter = 1;
+    int max_iter = 300;
     double epsilon = 1e-4;
     double beta = 0.5;
 
