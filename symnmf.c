@@ -107,7 +107,6 @@ double** calc_H(double** H_init, double** W, int vectors_num, int k) {
     }
 
     for (int iter = 0; iter < max_iter; iter++) {
-        printf("Iteration %d\n", iter);
         // Update H according to the provided rule
         
         double** HT = matrix_transpose(H, vectors_num, k);  // Transpose of H at iteration i
@@ -131,8 +130,6 @@ double** calc_H(double** H_init, double** W, int vectors_num, int k) {
         if (frobenius_norm_diff(H, H_init, vectors_num, k) < epsilon) {
             break;
         }
-
-        printf("Frobenius norm: %f\n", frobenius_norm_diff(H, H_init, vectors_num, k));
 
         for (int i = 0; i < vectors_num; i++) {
             for (int j = 0; j < k; j++) {
