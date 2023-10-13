@@ -27,7 +27,8 @@ def arg_parsing():
             raise Exception
         file_name = args[3]
 
-        run_kmeans_pp(k, goal,file_name)
+        mat = run_symnmf(k, goal,file_name)
+        print_mat(mat)
     except Exception:
         print("An Error Has Occurred")
         sys.exit(1)
@@ -55,27 +56,18 @@ def init_H(k, n, m):
     return np.random.uniform(high=high, size=(n, k)).tolist()
 
 
-def run_kmeans_pp(k,goal, input_filename):
+def run_symnmf(k,goal, input_filename):
     goal_to_num = {"sym":1,"ddg":2,"norm":3,"symnmf":4}
     vectors = pd.read_csv(input_filename,header=None)
     vectors = vectors.values.tolist()
     if goal_to_num.get(goal) == 4:
         W = symnmfmodule.fit(3, vectors, len(vectors), len(vectors[0]))
-        print_mat(W)
         H = init_H(k,len(W),calc_mat_avg(W))
-        print_mat(H)
         H = symnmfmodule.symnmf(H,W,len(vectors), k)
-        print_mat(H)
+        return H
     else:
         mat = symnmfmodule.fit(goal_to_num.get(goal), vectors, len(vectors), len(vectors[0]))
-    # print(len(mat),len(mat[0]))
-    # print(mat[0][0],mat[0][1])
-    # for centroid in centroids:
-    #     for i, element in enumerate(centroid):
-    #         if i != 0:
-    #             print(",", end="")
-    #         print(f"{element:.4f}", end="")
-    #     print()
+        return mat
 
 if __name__ == '__main__':
     arg_parsing()
