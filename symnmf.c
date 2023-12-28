@@ -21,9 +21,12 @@ void print_matrix(double** matrix, int rows, int cols);
 
 
 double** goal_manager(int goal, double** vectors, int vec_size, int vectors_num){
+    double** res_matrix;
+    double** D_matrix;
     size_vec = vec_size;
     num_vectors = vectors_num;
-    double** res_matrix;
+
+    
     switch(goal){
         case 1: //Similarity Matrix
             res_matrix = similarity_matrix(vectors);
@@ -34,7 +37,7 @@ double** goal_manager(int goal, double** vectors, int vec_size, int vectors_num)
             break;
         case 3: // Normalized Similarity Matrix
             res_matrix = similarity_matrix(vectors);
-            double** D_matrix = diagonal_degree_matrix(res_matrix);
+            D_matrix = diagonal_degree_matrix(res_matrix);
             res_matrix = normalized_similarity_matrix(res_matrix, D_matrix);
             // Free D_matrix as it is no longer needed
             free_matrix(D_matrix, num_vectors);
@@ -49,9 +52,12 @@ double** goal_manager(int goal, double** vectors, int vec_size, int vectors_num)
 // Helper function: Calculate Frobenius norm of the difference between two matrices
 double frobenius_norm_diff(double** A, double** B, int rows, int cols) {
     double sum = 0.0;
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            double diff = A[i][j] - B[i][j];
+    int i;
+    int j;
+    double diff;
+    for (i = 0; i < rows; i++) {
+        for (j = 0; j < cols; j++) {
+            diff = A[i][j] - B[i][j];
             sum += diff * diff;
         }
     }
@@ -60,17 +66,22 @@ double frobenius_norm_diff(double** A, double** B, int rows, int cols) {
 
 // Helper function: Matrix multiplication
 double** matrix_multiply(double** A, double** B, int rowsA, int colsA, int rowsB, int colsB) {
+    double** C;
+    int i;
+    int j;
+    int k;
+
     if (colsA != rowsB) {
         // Handle error: matrices cannot be multiplied
         return NULL;
     }
-    
-    double** C = malloc(rowsA * sizeof(double*));
-    for (int i = 0; i < rowsA; i++) {
+
+    C = malloc(rowsA * sizeof(double*));
+    for (i = 0; i < rowsA; i++) {
         C[i] = malloc(colsB * sizeof(double));
-        for (int j = 0; j < colsB; j++) {
+        for (j = 0; j < colsB; j++) {
             C[i][j] = 0.0;
-            for (int k = 0; k < colsA; k++) {
+            for (k = 0; k < colsA; k++) {
                 C[i][j] += A[i][k] * B[k][j];
             }
         }
@@ -80,10 +91,13 @@ double** matrix_multiply(double** A, double** B, int rowsA, int colsA, int rowsB
 
 // Helper function: Matrix transpose
 double** matrix_transpose(double** A, int rows, int cols) {
-    double** AT = malloc(cols * sizeof(double*));
-    for (int i = 0; i < cols; i++) {
+    double** AT;
+    int i;
+    int j;
+    AT = malloc(cols * sizeof(double*));
+    for (i = 0; i < cols; i++) {
         AT[i] = malloc(rows * sizeof(double));
-        for (int j = 0; j < rows; j++) {
+        for (j = 0; j < rows; j++) {
             AT[i][j] = A[j][i];
         }
     }
@@ -96,26 +110,36 @@ double** calc_H(double** H_init, double** W, int vectors_num, int k) {
     int max_iter = 300;
     double epsilon = 1e-4;
     double beta = 0.5;
+    int i;
+    int j;
+    double** H;
+    int iter;
+    double** HT;
+    double** HHT;
+    double** HHTH;
+    double** WH;
 
     // Allocate memory and initialize H
-    double** H = malloc(vectors_num * sizeof(double*));
-    for (int i = 0; i < vectors_num; i++) {
+    H = malloc(vectors_num * sizeof(double*));
+    for (i = 0; i < vectors_num; i++) {
         H[i] = malloc(k * sizeof(double));
-        for (int j = 0; j < k; j++) {
+        for (j = 0; j < k; j++) {
             H[i][j] = H_init[i][j];
         }
     }
 
-    for (int iter = 0; iter < max_iter; iter++) {
+
+
+    for (iter = 0; iter < max_iter; iter++) {
         // Update H according to the provided rule
         
-        double** HT = matrix_transpose(H, vectors_num, k);  // Transpose of H at iteration i
-        double** HHT = matrix_multiply(H, HT, vectors_num, k, k, vectors_num);  // H*(H^T)
-        double** HHTH = matrix_multiply(HHT, H, vectors_num, vectors_num, vectors_num, k);  // H*(H^T)*H
-        double** WH = matrix_multiply(W, H, vectors_num, vectors_num, vectors_num, k);  // W*H
+        HT = matrix_transpose(H, vectors_num, k);  // Transpose of H at iteration i
+        HHT = matrix_multiply(H, HT, vectors_num, k, k, vectors_num);  // H*(H^T)
+        HHTH = matrix_multiply(HHT, H, vectors_num, vectors_num, vectors_num, k);  // H*(H^T)*H
+        WH = matrix_multiply(W, H, vectors_num, vectors_num, vectors_num, k);  // W*H
         
-        for (int i = 0; i < vectors_num; i++) {
-            for (int j = 0; j < k; j++) {
+        for (i = 0; i < vectors_num; i++) {
+            for (j = 0; j < k; j++) {
                 H[i][j] = H_init[i][j] * (1 - beta + beta * (WH[i][j] / HHTH[i][j]));
             }
         }
@@ -131,14 +155,14 @@ double** calc_H(double** H_init, double** W, int vectors_num, int k) {
             break;
         }
 
-        for (int i = 0; i < vectors_num; i++) {
-            for (int j = 0; j < k; j++) {
+        for (i = 0; i < vectors_num; i++) {
+            for (j = 0; j < k; j++) {
                 H_init[i][j] = H[i][j];
             }
         }
     }
 
-    for (int i = 0; i < vectors_num; i++) {
+    for (i = 0; i < vectors_num; i++) {
         free(H_init[i]);
     }
     free(H_init);
@@ -147,10 +171,15 @@ double** calc_H(double** H_init, double** W, int vectors_num, int k) {
 }
 
 void deriveClusters(double** H, int* clusters, int n, int k) {
-    for(int i = 0; i < n; i++) {
-        int max_idx = 0;
-        float max_val = H[i][0];
-        for(int j = 1; j < k; j++) {
+    int i;
+    int j;
+    float max_val;
+    int max_idx;
+
+    for(i = 0; i < n; i++) {
+        max_idx = 0;
+        max_val = H[i][0];
+        for(j = 1; j < k; j++) {
             if(H[i][j] > max_val) {
                 max_val = H[i][j];
                 max_idx = j;
@@ -162,9 +191,13 @@ void deriveClusters(double** H, int* clusters, int n, int k) {
 
 
 double** copy_matrix(double** source, int rows, int cols) {
-    double** dest = create_mat(rows, cols);
-    for(int i = 0; i < rows; i++) {
-        for(int j = 0; j < cols; j++) {
+    double** dest;
+    int i;
+    int j;
+
+    dest = create_mat(rows, cols);
+    for(i = 0; i < rows; i++) {
+        for(j = 0; j < cols; j++) {
             dest[i][j] = source[i][j];
         }
     }
@@ -173,7 +206,8 @@ double** copy_matrix(double** source, int rows, int cols) {
 
 
 void free_matrix(double** matrix, int rows) {
-    for(int i = 0; i < rows; i++)
+    int i;
+    for(i = 0; i < rows; i++)
         free(matrix[i]);
     free(matrix);
 }
@@ -228,10 +262,14 @@ double** similarity_matrix(double** vectors){
 
 //1.2
 double** diagonal_degree_matrix(double** A_matrix) {
-    double** D_matrix = create_mat(num_vectors, num_vectors);
-    for(int i = 0; i < num_vectors; i++) {
+    int i;
+    int j;
+    double** D_matrix;
+
+    D_matrix = create_mat(num_vectors, num_vectors);
+    for(i = 0; i < num_vectors; i++) {
         double sum = 0;
-        for(int j = 0; j < num_vectors; j++) {
+        for(j = 0; j < num_vectors; j++) {
             sum += A_matrix[i][j];
         }
         D_matrix[i][i] = sum; // Diagonal elements are the degrees
@@ -241,9 +279,13 @@ double** diagonal_degree_matrix(double** A_matrix) {
 
 //1.3
 double** normalized_similarity_matrix(double** A_matrix, double** D_matrix) {
-    double** W_matrix = create_mat(num_vectors, num_vectors);
-    for(int i = 0; i < num_vectors; i++) {
-        for(int j = 0; j < num_vectors; j++) {
+    double** W_matrix;
+    int i;
+    int j;
+
+    W_matrix = create_mat(num_vectors, num_vectors);
+    for(i = 0; i < num_vectors; i++) {
+        for(j = 0; j < num_vectors; j++) {
             if(D_matrix[i][i] != 0 && D_matrix[j][j] != 0) {
                 W_matrix[i][j] = A_matrix[i][j] / (sqrt(D_matrix[i][i]) * sqrt(D_matrix[j][j]));
             } else {
@@ -255,21 +297,30 @@ double** normalized_similarity_matrix(double** A_matrix, double** D_matrix) {
 }
 
 double** read_input_file(const char* file_name, int* vec_size, int* vectors_num) {
-    FILE *file = fopen(file_name, "r");
+    int i;
+    int j;
+    char *token;
+    FILE *file;
+    char line[1024]; // Adjust the size as needed
+    double **vectors;
+
+    file = fopen(file_name, "r");
+
     if(!file) {
         perror("Error opening file");
         return NULL;
     }
     
-    char line[1024]; // Adjust the size as needed
+
     *vectors_num = 0;
     *vec_size = 0;
+
 
     // Count the number of lines (vectors) and the size of vectors in the file
     while(fgets(line, sizeof(line), file)) {
         if(strcmp(line, "\n") == 0) break; // Stop at an empty line
 
-        char *token = strtok(line, ",");
+        token = strtok(line, ",");
         while(token) {
             if(*vectors_num == 0) (*vec_size)++;
             token = strtok(NULL, ",");
@@ -278,7 +329,7 @@ double** read_input_file(const char* file_name, int* vec_size, int* vectors_num)
     }
     
     // Allocate memory for vectors
-    double **vectors = create_mat(*vectors_num, *vec_size);
+    vectors = create_mat(*vectors_num, *vec_size);
     if(!vectors) {
         fclose(file);
         return NULL;
@@ -288,11 +339,11 @@ double** read_input_file(const char* file_name, int* vec_size, int* vectors_num)
     rewind(file);
     
     // Read the vectors from the file
-    for(int i = 0; i < *vectors_num; i++) {
+    for(i = 0; i < *vectors_num; i++) {
         if(!fgets(line, sizeof(line), file) || strcmp(line, "\n") == 0) break;
 
-        char *token = strtok(line, ",");
-        for(int j = 0; token && j < *vec_size; j++) {
+        token = strtok(line, ",");
+        for(j = 0; token && j < *vec_size; j++) {
             vectors[i][j] = atof(token);
             token = strtok(NULL, ",");
         }
@@ -303,8 +354,12 @@ double** read_input_file(const char* file_name, int* vec_size, int* vectors_num)
 }
 
 void print_matrix(double** matrix, int rows, int cols) {
-    for(int i = 0; i < rows; i++) {
-        for(int j = 0; j < cols; j++) {
+    int i;
+    int j;
+    
+
+    for(i = 0; i < rows; i++) {
+        for(j = 0; j < cols; j++) {
             printf("%.4f ", matrix[i][j]);
             if(j < cols - 1) printf(",");
         }
@@ -313,15 +368,22 @@ void print_matrix(double** matrix, int rows, int cols) {
 }
 
 int main(int argc, char* argv[]) {
+    const char* goal;
+    const char* file_name;
+    int goal_code;
+    int vec_size, vectors_num;
+    double** vectors;
+    double** result_matrix;
+
+
     if(argc != 3) {
         fprintf(stderr, "Usage: %s <goal> <file_name>\n", argv[0]);
         return 1;
     }
     
-    const char* goal = argv[1];
-    const char* file_name = argv[2];
+    goal = argv[1];
+    file_name = argv[2];
     
-    int goal_code;
     if(strcmp(goal, "sym") == 0) goal_code = 1;
     else if(strcmp(goal, "ddg") == 0) goal_code = 2;
     else if(strcmp(goal, "norm") == 0) goal_code = 3;
@@ -330,14 +392,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    int vec_size, vectors_num;
-    double** vectors = read_input_file(file_name, &vec_size, &vectors_num);
+    
+    vectors = read_input_file(file_name, &vec_size, &vectors_num);
     if(!vectors) {
         fprintf(stderr, "Failed to read input file: %s\n", file_name);
         return 1;
     }
 
-    double** result_matrix = goal_manager(goal_code, vectors, vec_size, vectors_num);
+    result_matrix = goal_manager(goal_code, vectors, vec_size, vectors_num);
     if(!result_matrix) {
         fprintf(stderr, "Failed to calculate the result matrix for goal: %s\n", goal);
         return 1;
