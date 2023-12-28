@@ -60,8 +60,6 @@ def main():
     symnmf_labels = perform_symnmf(file_name, k)
     kmeans_labels = perform_kmeans(file_name, k)
 
-    print(f"symnmf: {symnmf_labels}")
-    print(f"kmeans: {kmeans_labels}")
 
     vectors = read_data(file_name)
     symnmf_score = silhouette_score(vectors, symnmf_labels)
