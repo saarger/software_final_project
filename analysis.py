@@ -65,4 +65,7 @@ def main():
     print(f"kmeans: {kmeans_score:.4f}")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        print("An Error Has Occurred")    
