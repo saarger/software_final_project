@@ -377,7 +377,7 @@ int main(int argc, char* argv[]) {
 
 
     if(argc != 3) {
-        fprintf(stderr, "Usage: %s <goal> <file_name>\n", argv[0]);
+        fprintf(stderr, "An Error Has Occurred .\n Usage: %s <goal> <file_name>\n", argv[0]);
         return 1;
     }
     
@@ -388,20 +388,20 @@ int main(int argc, char* argv[]) {
     else if(strcmp(goal, "ddg") == 0) goal_code = 2;
     else if(strcmp(goal, "norm") == 0) goal_code = 3;
     else {
-        fprintf(stderr, "Invalid goal: %s. Valid goals are 'sym', 'ddg', and 'norm'.\n", goal);
+        fprintf(stderr,"An Error Has Occurred .\n Invalid goal: %s. Valid goals are 'sym', 'ddg', and 'norm'.\n", goal);
         return 1;
     }
 
     
     vectors = read_input_file(file_name, &vec_size, &vectors_num);
     if(!vectors) {
-        fprintf(stderr, "Failed to read input file: %s\n", file_name);
+        fprintf(stderr, "An Error Has Occurred .\n Failed to read input file: %s\n", file_name);
         return 1;
     }
 
     result_matrix = goal_manager(goal_code, vectors, vec_size, vectors_num);
     if(!result_matrix) {
-        fprintf(stderr, "Failed to calculate the result matrix for goal: %s\n", goal);
+        fprintf(stderr, "An Error Has Occurred .\n Failed to calculate the result matrix for goal: %s\n", goal);
         return 1;
     }
     
