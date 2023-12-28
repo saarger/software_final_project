@@ -30,30 +30,6 @@ def k_means(k,iter,input_data):
         centroids,labels =  kmeansp(vectors,k,iter,epsilon)
         return centroids,labels
         
-        # # initialize centroids
-        # for i in range(k):
-        #     centroids.append(vectors[i])
-
-        # i = 0
-        # delta_uk = 1
-        # # run k-means algorithm
-        # while i < iter and delta_uk > epsilon:
-        #     dic = update_dict(centroids)
-        #     for vector in vectors:
-        #         min_dis = float('inf')
-        #         for center in centroids:
-        #             dis = d(vector,center)
-        #             if dis < min_dis: # find the nearest center
-        #                 min_dis = dis
-        #                 this_vector_center = center
-        #     # update centroids
-        #         dic.get(this_vector_center).append(vector)
-
-        #     centroids,delta_uk = update_centroids(dic)
-        #     i+=1
-
-        # centroids = adapt_to_assumptions(centroids)
-        # return centroids
 
     except Exception:
         print("An Error Has Occurred")

@@ -7,11 +7,7 @@ from sklearn.decomposition import NMF
 from sklearn.metrics import silhouette_score
 import random
 import math
-import numpy as np
-import pandas as pd
 import symnmfmodule
-import symnmf
-import sys
 import kmeans
 
 
