@@ -28,18 +28,18 @@ double** goal_manager(int goal, double** vectors, int vec_size, int vectors_num)
 
     
     switch(goal){
-        case 1: //Similarity Matrix
+        case 1: /* Similarity Matrix */
             res_matrix = similarity_matrix(vectors);
             break;
-        case 2: // Diagonal Degree Matrix
+        case 2: /*  Diagonal Degree Matrix */
             res_matrix = similarity_matrix(vectors);
             res_matrix = diagonal_degree_matrix(res_matrix);
             break;
-        case 3: // Normalized Similarity Matrix
+        case 3: /*  Normalized Similarity Matrix */
             res_matrix = similarity_matrix(vectors);
             D_matrix = diagonal_degree_matrix(res_matrix);
             res_matrix = normalized_similarity_matrix(res_matrix, D_matrix);
-            // Free D_matrix as it is no longer needed
+            /*  Free D_matrix as it is no longer needed */
             free_matrix(D_matrix, num_vectors);
             break;
         default:
@@ -49,7 +49,7 @@ double** goal_manager(int goal, double** vectors, int vec_size, int vectors_num)
     return res_matrix;
 }
 
-// Helper function: Calculate Frobenius norm of the difference between two matrices
+/*  Helper function: Calculate Frobenius norm of the difference between two matrices */
 double frobenius_norm_diff(double** A, double** B, int rows, int cols) {
     double sum = 0.0;
     int i;
@@ -64,7 +64,7 @@ double frobenius_norm_diff(double** A, double** B, int rows, int cols) {
     return sum;
 }
 
-// Helper function: Matrix multiplication
+/*  Helper function: Matrix multiplication */
 double** matrix_multiply(double** A, double** B, int rowsA, int colsA, int rowsB, int colsB) {
     double** C;
     int i;
@@ -72,7 +72,7 @@ double** matrix_multiply(double** A, double** B, int rowsA, int colsA, int rowsB
     int k;
 
     if (colsA != rowsB) {
-        // Handle error: matrices cannot be multiplied
+        /*  Handle error: matrices cannot be multiplied */
         return NULL;
     }
 
@@ -89,7 +89,7 @@ double** matrix_multiply(double** A, double** B, int rowsA, int colsA, int rowsB
     return C;
 }
 
-// Helper function: Matrix transpose
+/*  Helper function: Matrix transpose */
 double** matrix_transpose(double** A, int rows, int cols) {
     double** AT;
     int i;
@@ -104,7 +104,7 @@ double** matrix_transpose(double** A, int rows, int cols) {
     return AT;
 }
 
-// Main function: Calculate H
+/*  Main function: Calculate H */
 double** calc_H(double** H_init, double** W, int vectors_num, int k) {
 
     int max_iter = 300;
@@ -119,7 +119,7 @@ double** calc_H(double** H_init, double** W, int vectors_num, int k) {
     double** HHTH;
     double** WH;
 
-    // Allocate memory and initialize H
+    /*  Allocate memory and initialize H */
     H = malloc(vectors_num * sizeof(double*));
     for (i = 0; i < vectors_num; i++) {
         H[i] = malloc(k * sizeof(double));
@@ -131,12 +131,12 @@ double** calc_H(double** H_init, double** W, int vectors_num, int k) {
 
 
     for (iter = 0; iter < max_iter; iter++) {
-        // Update H according to the provided rule
+        /*  Update H according to the provided rule */
         
-        HT = matrix_transpose(H, vectors_num, k);  // Transpose of H at iteration i
-        HHT = matrix_multiply(H, HT, vectors_num, k, k, vectors_num);  // H*(H^T)
-        HHTH = matrix_multiply(HHT, H, vectors_num, vectors_num, vectors_num, k);  // H*(H^T)*H
-        WH = matrix_multiply(W, H, vectors_num, vectors_num, vectors_num, k);  // W*H
+        HT = matrix_transpose(H, vectors_num, k);  /*  Transpose of H at iteration i */
+        HHT = matrix_multiply(H, HT, vectors_num, k, k, vectors_num);  /*  H*(H^T) */
+        HHTH = matrix_multiply(HHT, H, vectors_num, vectors_num, vectors_num, k);  /*  H*(H^T)*H */
+        WH = matrix_multiply(W, H, vectors_num, vectors_num, vectors_num, k);  /*  W*H */
         
         for (i = 0; i < vectors_num; i++) {
             for (j = 0; j < k; j++) {
@@ -144,13 +144,13 @@ double** calc_H(double** H_init, double** W, int vectors_num, int k) {
             }
         }
         
-        // Free memory
+        /*  Free memory */
         free(HT);
         free(HHT);
         free(HHTH);
         free(WH);
         
-        // Check stopping criteria
+        /*  Check stopping criteria */
         if (frobenius_norm_diff(H, H_init, vectors_num, k) < epsilon) {
             break;
         }
@@ -215,7 +215,7 @@ void free_matrix(double** matrix, int rows) {
 double** create_mat(int vec_num, int vec_size){
     int i;
     double **mat;
-    //mat = calloc(vec_num, sizeof(double*));
+    /* mat = calloc(vec_num, sizeof(double*)); */
     mat = calloc(vec_num, vec_num*sizeof(double));
     if (!mat)
     {
@@ -241,7 +241,7 @@ double vector_distance(double* p, double* q){
     return sum;
 }
 
-//1.1
+/* 1.1 */
 double** similarity_matrix(double** vectors){
     int i,j;
     double** A_matrix;
@@ -260,7 +260,7 @@ double** similarity_matrix(double** vectors){
 
 }
 
-//1.2
+/* 1.2 */
 double** diagonal_degree_matrix(double** A_matrix) {
     int i;
     int j;
@@ -272,12 +272,12 @@ double** diagonal_degree_matrix(double** A_matrix) {
         for(j = 0; j < num_vectors; j++) {
             sum += A_matrix[i][j];
         }
-        D_matrix[i][i] = sum; // Diagonal elements are the degrees
+        D_matrix[i][i] = sum; /*  Diagonal elements are the degrees */
     }
     return D_matrix;
 }
 
-//1.3
+/* 1.3 */
 double** normalized_similarity_matrix(double** A_matrix, double** D_matrix) {
     double** W_matrix;
     int i;
@@ -301,7 +301,7 @@ double** read_input_file(const char* file_name, int* vec_size, int* vectors_num)
     int j;
     char *token;
     FILE *file;
-    char line[1024]; // Adjust the size as needed
+    char line[1024]; /*  Adjust the size as needed */
     double **vectors;
 
     file = fopen(file_name, "r");
@@ -316,9 +316,9 @@ double** read_input_file(const char* file_name, int* vec_size, int* vectors_num)
     *vec_size = 0;
 
 
-    // Count the number of lines (vectors) and the size of vectors in the file
+    /*  Count the number of lines (vectors) and the size of vectors in the file */
     while(fgets(line, sizeof(line), file)) {
-        if(strcmp(line, "\n") == 0) break; // Stop at an empty line
+        if(strcmp(line, "\n") == 0) break; /*  Stop at an empty line */
 
         token = strtok(line, ",");
         while(token) {
@@ -328,17 +328,17 @@ double** read_input_file(const char* file_name, int* vec_size, int* vectors_num)
         (*vectors_num)++;
     }
     
-    // Allocate memory for vectors
+    /*  Allocate memory for vectors */
     vectors = create_mat(*vectors_num, *vec_size);
     if(!vectors) {
         fclose(file);
         return NULL;
     }
 
-    // Reset the file pointer to the beginning of the file
+    /*  Reset the file pointer to the beginning of the file */
     rewind(file);
     
-    // Read the vectors from the file
+    /*  Read the vectors from the file */
     for(i = 0; i < *vectors_num; i++) {
         if(!fgets(line, sizeof(line), file) || strcmp(line, "\n") == 0) break;
 
@@ -407,7 +407,7 @@ int main(int argc, char* argv[]) {
     
     print_matrix(result_matrix, vectors_num, vectors_num);
     
-    // Clean up allocated memory.
+    /*  Clean up allocated memory. */
     free_matrix(result_matrix, vectors_num);
     free_matrix(vectors, vectors_num);
     
