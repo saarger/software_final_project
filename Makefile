@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -ansi -Wall -Wextra -pedantic-errors  -O2
+CFLAGS = -ansi -Wall -Wextra -pedantic-errors  -O2 -lm
 TARGET = symnmf
 SRC = symnmf.c
 
