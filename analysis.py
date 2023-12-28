@@ -47,6 +47,7 @@ def perform_kmeans(file_name, k):
 
 def main():
     if len(sys.argv) != 3:
+        print("An Error Has Occurred")
         print("Usage: python3 analysis.py <k> <file_name.txt>")
         sys.exit(1)
         
